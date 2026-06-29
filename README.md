@@ -46,6 +46,7 @@
 ```
 
 ## 核心业务逻辑
+<img width="870" height="735" alt="微信图片_20260629111512_1382_94" src="https://github.com/user-attachments/assets/bae55514-7e65-4f91-a25c-dbdaa757d2ad" />
 
 ### 1. 离线推荐链路
 
@@ -74,6 +75,11 @@
 - 离线推荐缺失时：自动回退到热门菜品，保证页面始终有可展示内容。
 - 菜品详情页：同时展示 ALS 相似菜品、ItemCF 相似菜品、历史评论和 Flink 实时窗口统计。
 - 看板和可视化页：聚合评分概况、评分分布、热门菜品、活跃用户、模型指标、最新评论和实时热门菜品。
+**效果演示图**
+<img width="909" height="464" alt="微信图片_20260629111639_1386_94" src="https://github.com/user-attachments/assets/c063773a-2af1-448e-8ecc-bd5f3e841710" />
+<img width="909" height="262" alt="微信图片_20260629111603_1383_94" src="https://github.com/user-attachments/assets/632e8a49-9198-43be-abf9-59be85e995d5" />
+<img width="909" height="430" alt="微信图片_20260629111639_1384_94" src="https://github.com/user-attachments/assets/471ca405-653a-4436-ad7b-878a73dbed89" />
+
 
 ## MySQL 主要表
 
