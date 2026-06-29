@@ -182,6 +182,3 @@ python -m pytest
 | `/api/recommend/<user_id>` | 指定用户推荐结果 |
 | `/api/similar/<meal_id>` | 指定菜品相似推荐 |
 
-## 上传 GitHub 说明
-
-本仓库建议只上传关键代码、测试、README 和运行脚本。大型数据集、课程报告、PPT、IDE 缓存、测试缓存和本地虚拟环境已通过 `.gitignore` 排除，避免仓库过大或泄露本地环境信息。
