@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}数据库状态 - 菜品智能推荐系统{% endblock %}
+{% block content %}
+<section class="section-head">
+    <div>
+        <h1>数据库状态</h1>
+        <p>用于答辩展示跨系统部署：Windows Flask 实时读取 Linux 虚拟机 MySQL。</p>
+    </div>
+</section>
+
+<section class="panel">
+    <table>
+        <thead><tr><th>表名</th><th>记录数</th></tr></thead>
+        <tbody>
+        {% for row in counts %}
+        <tr><td>{{ row.table_name }}</td><td>{{ row.row_count }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

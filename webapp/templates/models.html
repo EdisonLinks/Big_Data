@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}模型对比 - 菜品智能推荐系统{% endblock %}
+{% block content %}
+<section class="section-head">
+    <div>
+        <h1>模型对比</h1>
+        <p>ALS 负责高覆盖主推荐，ItemCF 负责可解释辅助推荐；两者共同组成混合推荐展示。</p>
+    </div>
+</section>
+
+<section class="panel">
+    <table>
+        <thead>
+            <tr>
+                <th>模型</th><th>参数</th><th>测试集</th><th>预测数</th><th>覆盖率</th><th>RMSE</th><th>MAE</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in metrics %}
+            <tr>
+                <td>{{ row.model_type|upper }}</td>
+                <td>
+                    {% if row.model_type == "als" %}
+                    rank={{ row.als_rank }}, iter={{ row.max_iter }}, reg={{ row.reg_param }}
+                    {% else %}
+                    topN={{ row.top_similar_n }}, common>={{ row.min_common_users }}
+                    {% endif %}
+                </td>
+                <td>{{ row.test_rows }}</td>
+                <td>{{ row.prediction_rows }}</td>
+                <td>{{ "%.2f%%"|format((row.prediction_coverage or 0) * 100) }}</td>
+                <td>{{ "%.4f"|format(row.rmse or 0) }}</td>
+                <td>{{ "%.4f"|format(row.mae) if row.mae is not none else "-" }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="note">
+    <strong>上线策略：</strong>ALS 覆盖率接近全量用户，作为主推荐；ItemCF 的 RMSE 略低且有 evidence/common_users 字段，适合展示推荐依据和做辅助对比。新用户或稀疏用户使用热门高分菜品进行冷启动兜底。
+</section>
+{% endblock %}

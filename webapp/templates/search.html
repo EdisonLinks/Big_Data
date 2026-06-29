@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}搜索菜品 - 菜品智能推荐系统{% endblock %}
+{% block content %}
+<section class="hero-panel compact-hero search-hero">
+    <div>
+        <span class="eyebrow">Search</span>
+        <h1>搜索菜品</h1>
+        {% if query %}
+        <p>关键词：{{ query }}，共找到 {{ results|length }} 个相关菜品。</p>
+        {% else %}
+        <p>输入菜名或 meal_id，快速进入菜品详情与最新评论。</p>
+        {% endif %}
+    </div>
+</section>
+
+{% if query %}
+<section class="panel search-results-panel">
+    <div class="section-title-row compact">
+        <h2>搜索结果</h2>
+        <span class="source-pill">meals</span>
+    </div>
+    <div class="search-result-grid">
+        {% for row in results %}
+        <a class="search-result-card" href="{{ url_for('meal_detail', meal_id=row.meal_id) }}">
+            <div>
+                <strong>{{ row.meal_name or row.meal_id }}</strong>
+                <small>{{ row.meal_id }} · {{ row.category or "未分类" }}</small>
+            </div>
+            <div class="search-result-score">
+                <span>{{ "%.2f"|format(row.avg_rating or 0) }}</span>
+                <small>{{ row.rating_count or 0 }} 次评分</small>
+            </div>
+        </a>
+        {% else %}
+        <div class="empty-state">没有找到匹配菜品，可以换一个关键词或直接输入完整 meal_id。</div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}用户首页 - 菜品智能推荐系统{% endblock %}
+{% block content %}
+<section class="home-board">
+    <div class="hero-panel home-hero">
+        <div class="hero-copy">
+            <span class="eyebrow">Personalized Menu</span>
+            <h1>今晚吃点更合口味的。</h1>
+            <p>{{ result.message }}</p>
+        </div>
+        <div class="hero-side">
+            <span class="corner-badge">{{ result.strategy }}</span>
+            <div class="home-actions">
+                <a class="button" href="{{ url_for('history') }}">查看历史</a>
+                <a class="button ghost" href="{{ url_for('visualization') }}">数据图表</a>
+            </div>
+        </div>
+    </div>
+
+    {% if result.profile %}
+    <aside class="panel profile-panel">
+        <span class="eyebrow">Profile</span>
+        <h2>{{ result.profile.username }}</h2>
+        <div class="profile-facts">
+            <div><span>用户阶段</span><strong>{{ result.profile.user_stage_label }}</strong></div>
+            <div><span>注册日期</span><strong>{{ result.profile.register_date }}</strong></div>
+            <div><span>历史评分</span><strong>{{ result.profile.rating_count }}</strong></div>
+        </div>
+    </aside>
+    {% endif %}
+
+    {% if result.top_rated_meals %}
+    <section class="panel home-marquee-panel" aria-labelledby="top-rated-heading">
+        <div class="section-title-row compact">
+            <div>
+                <h2 id="top-rated-heading">高分菜品速递</h2>
+                <p>从数据库中的高分热门菜品里滚动展示，点击即可查看最新评分和评论。</p>
+            </div>
+            <span class="source-pill">MySQL</span>
+        </div>
+        <div class="marquee-window" data-marquee>
+            <div class="marquee-track">
+                {% for row in result.top_rated_meals %}
+                <a class="marquee-meal" href="{{ url_for('meal_detail', meal_id=row.meal_id) }}">
+                    <span class="rank-chip">#{{ loop.index }}</span>
+                    <strong>{{ row.meal_name or row.meal_id }}</strong>
+                    <small>{{ row.rating_count }} 次评分</small>
+                    <b>{{ "%.2f"|format(row.avg_rating or 0) }}</b>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if result.realtime_top_meals %}
+    <section class="panel realtime-window-panel" aria-labelledby="realtime-window-heading">
+        <div class="section-title-row compact">
+            <div>
+                <h2 id="realtime-window-heading">Flink 2 秒实时热度</h2>
+                <p>由 Flink 消费 Kafka 评论流计算，Web 只读取实时聚合结果。</p>
+            </div>
+            <span class="source-pill">Flink Window</span>
+        </div>
+        <div class="realtime-window-grid">
+            {% for row in result.realtime_top_meals[:6] %}
+            <a class="realtime-window-card" href="{{ url_for('meal_detail', meal_id=row.meal_id) }}">
+                <span class="rank-chip">#{{ loop.index }}</span>
+                <strong>{{ row.meal_name or row.meal_id }}</strong>
+                <small>近 2 秒 {{ row.review_count_2s or 0 }} 次</small>
+                <b>{{ "%.2f"|format(row.avg_rating_2s or 0) }}</b>
+                <span class="score-line"><i style="width: {{ (((row.hot_score_2s or 0) if (row.hot_score_2s or 0) < 100 else 100))|round(0) }}%"></i></span>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</section>
+
+<section class="home-main-grid">
+    <div class="recommend-column">
+        {% if result.fallback and not result.als and not result.itemcf %}
+        <section class="recommend-section panel">
+            <div class="section-title-row">
+                <div>
+                    <h2>先从这些高人气菜品开始</h2>
+                    <p>没有历史行为时，系统优先给出稳定、评分高、被更多人选择的菜品。</p>
+                </div>
+                <span class="source-pill">冷启动</span>
+            </div>
+            <div class="dish-grid">
+                {% for row in result.fallback %}
+                <a class="dish-card warm" href="{{ url_for('meal_detail', meal_id=row.meal_id) }}">
+                    <span class="rank-chip">No. {{ loop.index }}</span>
+                    <strong>{{ row.meal_name or row.meal_id }}</strong>
+                    <span class="dish-meta">{{ row.rating_count }} 次评分</span>
+                    <span class="score-line"><i style="width: {{ ((row.avg_rating or 0) / 5 * 100)|round(0) }}%"></i></span>
+                    <span class="dish-score">{{ "%.2f"|format(row.avg_rating or 0) }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if result.als %}
+        <section class="recommend-section panel">
+            <div class="section-title-row">
+                <div>
+                    <h2>为你推荐</h2>
+                    <p>按你的历史偏好排序，优先展示未尝试过的菜品。</p>
+                </div>
+                <span class="source-pill">ALS</span>
+            </div>
+            <div class="dish-grid featured">
+                {% for row in result.als %}
+                <a class="dish-card" href="{{ url_for('meal_detail', meal_id=row.meal_id) }}">
+                    <span class="rank-chip">#{{ row.rank_no }}</span>
+                    <strong>{{ row.meal_id }}</strong>
+                    <span class="dish-meta">预测偏好分</span>
+                    <span class="score-line"><i style="width: {{ (((row.predicted_score or 0) if (row.predicted_score or 0) < 5 else 5) / 5 * 100)|round(0) }}%"></i></span>
+                    <span class="dish-score">{{ "%.2f"|format(row.predicted_score or 0) }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+
+    <aside class="insight-column">
+        <div class="panel activity-panel">
+            <div class="section-title-row compact">
+                <h2>最近点过和评过</h2>
+                <a href="{{ url_for('history') }}">全部历史</a>
+            </div>
+            <div class="activity-list">
+                {% for row in result.history %}
+                <a class="activity-item" href="{{ url_for('meal_detail', meal_id=row.meal_id) }}">
+                    <span class="rating-chip">{{ row.rating }}</span>
+                    <strong>{{ row.meal_name or row.meal_id }}</strong>
+                    <small>{{ row.review_date }} · {{ row.review or "暂无评论" }}</small>
+                </a>
+                {% else %}
+                <div class="empty-state">暂无历史行为，先从热门推荐里挑一份。</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="panel side-recs">
+            <div class="section-title-row compact">
+                <h2>相似口味</h2>
+                <span class="source-pill">ItemCF</span>
+            </div>
+            <div class="mini-rec-list">
+                {% for row in result.itemcf %}
+                <a class="mini-rec" href="{{ url_for('meal_detail', meal_id=row.meal_id) }}">
+                    <span>{{ row.rank_no }}</span>
+                    <strong>{{ row.meal_id }}</strong>
+                    <small>{{ "%.2f"|format(row.predicted_score or 0) }} · {{ row.evidence_count }} 条证据</small>
+                </a>
+                {% else %}
+                <div class="empty-state">相似口味证据不足。</div>
+                {% endfor %}
+            </div>
+            {% if result.fallback and (result.als or result.itemcf) %}
+            <div class="fallback-strip">
+                <span class="source-pill">热门兜底</span>
+                {% for row in result.fallback[:3] %}
+                <a href="{{ url_for('meal_detail', meal_id=row.meal_id) }}">{{ row.meal_name or row.meal_id }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </aside>
+</section>
+
+<script src="{{ url_for('static', filename='home-marquee.js') }}"></script>
+{% endblock %}

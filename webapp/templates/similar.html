@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}相似菜品 - 菜品智能推荐系统{% endblock %}
+{% block content %}
+<section class="hero-panel compact-hero">
+    <div>
+        <span class="eyebrow">Find a similar taste</span>
+        <h1>相似菜品推荐</h1>
+        <p>输入一个菜品，快速查看两组相似菜品候选。</p>
+    </div>
+</section>
+
+<form class="search" method="post">
+    <input name="meal_id" value="{{ meal_id }}" placeholder="输入 meal_id，例如 B00I3MPDP4">
+    <button type="submit">查询相似菜品</button>
+    <a class="button ghost" href="{{ url_for('api_similar', meal_id=meal_id) }}">JSON</a>
+</form>
+
+<section class="two-col">
+    <div class="panel">
+        <div class="section-title-row compact">
+            <h2>隐向量相似</h2>
+            <span class="source-pill">ALS</span>
+        </div>
+        <div class="similar-list">
+            {% for row in result.als %}
+            <a class="similar-item" href="{{ url_for('meal_detail', meal_id=row.similar_meal_id) }}">
+                <span class="rank-chip">#{{ row.rank_no }}</span>
+                <strong>{{ row.similar_meal_id }}</strong>
+                <span class="score-line"><i style="width: {{ ((row.similarity or 0) * 100)|round(0) }}%"></i></span>
+                <small>{{ "%.4f"|format(row.similarity or 0) }}</small>
+            </a>
+            {% else %}
+            <div class="empty-state">暂无 ALS 相似菜品</div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="panel">
+        <div class="section-title-row compact">
+            <h2>共同口味相似</h2>
+            <span class="source-pill">ItemCF</span>
+        </div>
+        <div class="similar-list">
+            {% for row in result.itemcf %}
+            <a class="similar-item" href="{{ url_for('meal_detail', meal_id=row.similar_meal_id) }}">
+                <span class="rank-chip">#{{ row.rank_no }}</span>
+                <strong>{{ row.similar_meal_id }}</strong>
+                <span class="score-line"><i style="width: {{ ((row.similarity or 0) * 100)|round(0) }}%"></i></span>
+                <small>{{ "%.4f"|format(row.similarity or 0) }} · {{ row.common_users }} 位共同用户</small>
+            </a>
+            {% else %}
+            <div class="empty-state">暂无 ItemCF 相似菜品</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

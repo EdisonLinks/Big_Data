@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}数据图表 - 菜品智能推荐系统{% endblock %}
+{% block content %}
+<section class="analytics-hero">
+    <div>
+        <span class="eyebrow">Analytics</span>
+        <h1>数据图表</h1>
+        <p>围绕评分分布、热门菜品、活跃用户和模型指标展示数据库中的核心特征。</p>
+    </div>
+    <a class="button" href="{{ url_for('api_visualization') }}">JSON 数据</a>
+</section>
+
+<section class="analytics-strip">
+    <div><span>评分记录</span><strong>{{ data.summary.rating_count or 0 }}</strong></div>
+    <div><span>用户数量</span><strong>{{ data.summary.user_count or 0 }}</strong></div>
+    <div><span>菜品数量</span><strong>{{ data.summary.meal_count or 0 }}</strong></div>
+    <div><span>平均评分</span><strong>{{ "%.3f"|format(data.summary.avg_rating or 0) }}</strong></div>
+</section>
+
+{% if data.realtime_top_meals %}
+<section class="panel realtime-chart-summary">
+    <div class="section-title-row compact">
+        <div>
+            <h2>Flink 实时窗口热度 Top10</h2>
+            <p>2 秒滑动窗口聚合结果，体现流处理层对热度与平均分的实时计算。</p>
+        </div>
+        <span class="source-pill">meal_realtime_stats_current</span>
+    </div>
+    <div id="realtime-window-chart" class="chart-box"></div>
+</section>
+{% endif %}
+
+<section class="analytics-layout" data-chart-payload='{{ data|tojson }}'>
+    <div class="panel chart-panel chart-panel-wide">
+        <div class="section-title-row compact">
+            <h2>评分分布</h2>
+            <span class="source-pill">rating_distribution</span>
+        </div>
+        <div id="rating-distribution-chart" class="chart-box chart-box-large"></div>
+    </div>
+    <div class="panel chart-panel">
+        <div class="section-title-row compact">
+            <h2>模型指标对比</h2>
+            <span class="source-pill">model_metrics</span>
+        </div>
+        <div id="model-metrics-chart" class="chart-box"></div>
+    </div>
+    <div class="panel chart-panel">
+        <div class="section-title-row compact">
+            <h2>热门菜品 Top10</h2>
+            <span class="source-pill">popular_meals</span>
+        </div>
+        <div id="popular-meals-chart" class="chart-box"></div>
+    </div>
+    <div class="panel chart-panel">
+        <div class="section-title-row compact">
+            <h2>活跃用户 Top10</h2>
+            <span class="source-pill">active_users</span>
+        </div>
+        <div id="active-users-chart" class="chart-box"></div>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="{{ url_for('static', filename='visualization-charts.js') }}"></script>
+{% endblock %}

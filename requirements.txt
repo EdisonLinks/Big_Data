@@ -1,0 +1,7 @@
+Flask>=3.0
+PyMySQL>=1.1
+kafka-python>=2.0
+pandas>=2.0
+pyspark>=3.5
+apache-flink>=1.18
+pytest>=8.0

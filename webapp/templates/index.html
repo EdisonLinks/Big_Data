@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}数据概览 - 菜品智能推荐系统{% endblock %}
+{% block content %}
+<section class="section-head">
+    <div>
+        <h1>数据概览</h1>
+        <p>页面数据实时从虚拟机 MySQL 查询，重新导入统计结果后刷新页面即可看到变化。</p>
+        <p class="refresh-meta">最近刷新：<span id="last-refresh">页面加载中</span>，每 2 秒自动刷新关键指标。</p>
+    </div>
+    <a class="button" href="{{ url_for('api_dashboard') }}">JSON 数据</a>
+</section>
+
+<section class="metric-grid">
+    <div class="metric"><span>评分记录</span><strong id="metric-rating-count">{{ data.summary.rating_count }}</strong></div>
+    <div class="metric"><span>用户数量</span><strong id="metric-user-count">{{ data.summary.user_count }}</strong></div>
+    <div class="metric"><span>菜品数量</span><strong id="metric-meal-count">{{ data.summary.meal_count }}</strong></div>
+    <div class="metric"><span>平均评分</span><strong id="metric-avg-rating">{{ "%.3f"|format(data.summary.avg_rating or 0) }}</strong></div>
+    <div class="metric"><span>中位数</span><strong>{{ data.summary.median_rating }}</strong></div>
+    <div class="metric"><span>标准差</span><strong>{{ "%.3f"|format(data.summary.std_rating or 0) }}</strong></div>
+    <div class="metric live-metric"><span>近 10 分钟新增评论</span><strong id="metric-live-reviews">{{ data.live_review_count }}</strong></div>
+</section>
+
+<section class="two-col">
+    <div class="panel">
+        <h2>评分分布</h2>
+        <div class="bars">
+            {% for row in data.distribution %}
+            <div class="bar-row">
+                <span>{{ row.rating|int }} 分</span>
+                <div class="bar"><i style="width: {{ (row.ratio or 0) * 100 }}%"></i></div>
+                <b>{{ row.rating_count }}</b>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="panel">
+        <h2>模型覆盖概览</h2>
+        <table>
+            <thead><tr><th>模型</th><th>RMSE</th><th>覆盖率</th><th>MAE</th></tr></thead>
+            <tbody>
+            {% for row in data.metrics %}
+            <tr>
+                <td>{{ row.model_type|upper }}</td>
+                <td>{{ "%.4f"|format(row.rmse or 0) }}</td>
+                <td>{{ "%.2f%%"|format((row.prediction_coverage or 0) * 100) }}</td>
+                <td>{{ row.mae if row.mae is not none else "-" }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="two-col">
+    <div class="panel">
+        <h2>热门菜品 Top10</h2>
+        <table>
+            <thead><tr><th>菜品ID</th><th>评分次数</th><th>平均分</th></tr></thead>
+            <tbody>
+            {% for row in data.popular_meals %}
+            <tr><td>{{ row.meal_id }}</td><td>{{ row.rating_count }}</td><td>{{ "%.3f"|format(row.avg_rating or 0) }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="panel">
+        <h2>活跃用户 Top10</h2>
+        <table>
+            <thead><tr><th>用户ID</th><th>评分次数</th><th>平均分</th><th>分级</th></tr></thead>
+            <tbody>
+            {% for row in data.active_users %}
+            <tr><td>{{ row.user_id }}</td><td>{{ row.rating_count }}</td><td>{{ "%.3f"|format(row.avg_rating or 0) }}</td><td>{{ row.activity_level }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="panel live-review-panel">
+    <div class="section-title-row compact">
+        <div>
+            <h2>实时评论流</h2>
+            <p>Kafka Consumer 写入 MySQL 后，这里每 2 秒刷新最新点评。</p>
+        </div>
+        <span class="source-pill">meal_review_stream</span>
+    </div>
+    <div id="latest-review-list" class="live-review-list">
+        {% for row in data.latest_reviews %}
+        <article class="live-review-card {% if row.source == 'flask_review_form' %}user-submit{% endif %}">
+            <div>
+                <strong>{{ row.meal_name or row.meal_id }}</strong>
+                <small>{{ row.user_id }} · {{ row.review_date }}</small>
+            </div>
+            {% if row.source == 'flask_review_form' %}<span class="source-pill">用户提交</span>{% endif %}
+            <span class="rating-chip">{{ row.rating }}</span>
+            <p>{{ row.review or "暂无文字评论" }}</p>
+        </article>
+        {% else %}
+        <div class="empty-state">暂无实时评论。</div>
+        {% endfor %}
+    </div>
+</section>
+<script src="{{ url_for('static', filename='dashboard-refresh.js') }}"></script>
+{% endblock %}

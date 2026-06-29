@@ -1,0 +1,20 @@
+启动：Zookeeper → Kafka → Hadoop
+
+# 启动zookeeper
+zkServer.sh start
+
+# 启动Kafka， 进入kafka安装目录执行
+bin/kafka-server-start.sh -daemon config/server.properties
+
+# 启动hadoop
+start-dfs.sh
+
+
+关闭：Hadoop → Kafka → Zookeeper
+
+# 先关Hadoop
+stop-dfs.sh
+# 再关Kafka（kafka目录执行）
+bin/kafka-server-stop.sh
+# 最后关ZK
+zkServer.sh stop

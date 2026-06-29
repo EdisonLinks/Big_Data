@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}用户推荐 - 菜品智能推荐系统{% endblock %}
+{% block content %}
+<section class="hero-panel compact-hero">
+    <div>
+        <span class="eyebrow">User recommendation lookup</span>
+        <h1>用户个性化推荐</h1>
+        <p>输入用户 ID，查看这个用户当前会看到的推荐菜单。</p>
+    </div>
+    <span class="corner-badge">{{ "冷启动" if result.mode == "cold_start" else "个性化" }}</span>
+</section>
+
+<form class="search" method="post">
+    <input name="user_id" value="{{ user_id }}" placeholder="输入 user_id，例如 A27H9DOUGY9FOS">
+    <button type="submit">查询推荐</button>
+    <a class="button ghost" href="{{ url_for('api_recommend', user_id=user_id) }}">JSON</a>
+</form>
+
+<section class="note {{ result.mode }}">
+    <strong>{{ "冷启动推荐" if result.mode == "cold_start" else "个性化推荐" }}：</strong>{{ result.message }}
+    {% if result.profile %}
+    <div>用户 {{ result.profile.user_id }}，历史评分 {{ result.profile.rating_count }} 条，平均评分 {{ "%.3f"|format(result.profile.avg_rating or 0) }}，{{ result.profile.activity_level }}。</div>
+    {% endif %}
+</section>
+
+{% if result.als %}
+<section class="recommend-section">
+    <div class="section-title-row">
+        <div>
+            <h2>为该用户推荐</h2>
+            <p>按预测偏好分排序，优先展示未评分菜品。</p>
+        </div>
+        <span class="source-pill">ALS</span>
+    </div>
+    <div class="dish-grid featured">
+        {% for row in result.als %}
+        <a class="dish-card" href="{{ url_for('meal_detail', meal_id=row.meal_id) }}">
+            <span class="rank-chip">#{{ row.rank_no }}</span>
+            <strong>{{ row.meal_id }}</strong>
+            <span class="dish-meta">预测偏好分</span>
+            <span class="score-line"><i style="width: {{ (((row.predicted_score or 0) if (row.predicted_score or 0) < 5 else 5) / 5 * 100)|round(0) }}%"></i></span>
+            <span class="dish-score">{{ "%.2f"|format(row.predicted_score or 0) }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="two-col">
+    <div class="panel">
+        <div class="section-title-row compact">
+            <h2>相似口味补充</h2>
+            <span class="source-pill">ItemCF</span>
+        </div>
+        <div class="mini-rec-list">
+            {% for row in result.itemcf %}
+            <a class="mini-rec" href="{{ url_for('meal_detail', meal_id=row.meal_id) }}">
+                <span>{{ row.rank_no }}</span>
+                <strong>{{ row.meal_id }}</strong>
+                <small>{{ "%.2f"|format(row.predicted_score or 0) }} · {{ row.evidence_count }} 条证据</small>
+            </a>
+            {% else %}
+            <div class="empty-state">ItemCF 对该用户证据不足</div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="panel">
+        <div class="section-title-row compact">
+            <h2>热门兜底</h2>
+            <span class="source-pill">Popular</span>
+        </div>
+        <div class="mini-rec-list">
+            {% for row in result.fallback %}
+            <a class="mini-rec" href="{{ url_for('meal_detail', meal_id=row.meal_id) }}">
+                <span>{{ loop.index }}</span>
+                <strong>{{ row.meal_id }}</strong>
+                <small>{{ row.rating_count }} 次评分 · {{ "%.2f"|format(row.avg_rating or 0) }}</small>
+            </a>
+            {% else %}
+            <div class="empty-state">该用户已有模型推荐，暂无兜底列表。</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

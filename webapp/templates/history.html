@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}历史记录 - 菜品智能推荐系统{% endblock %}
+{% block content %}
+<section class="hero-panel compact-hero">
+    <div>
+        <span class="eyebrow">Taste memory</span>
+        <h1>历史点餐与评分</h1>
+        <p>这些行为会影响后续个性化推荐。</p>
+    </div>
+</section>
+<section class="panel">
+    <div class="history-list">
+        {% for row in history %}
+        <article class="history-item history-review-item">
+            <a class="history-main-link" href="{{ url_for('meal_detail', meal_id=row.meal_id) }}">
+                <span class="rating-chip">{{ row.rating }}</span>
+                <div>
+                    <strong>{{ row.meal_name or row.meal_id }}</strong>
+                    <small>{{ row.review_date }}</small>
+                </div>
+                <p>{{ row.review or "暂无评论" }}</p>
+            </a>
+            <form class="review-form" method="post" action="{{ url_for('submit_review') }}">
+                <input type="hidden" name="meal_id" value="{{ row.meal_id }}">
+                <label>
+                    <span>评分</span>
+                    <select name="rating" required>
+                        {% for score in [5, 4, 3, 2, 1] %}
+                        <option value="{{ score }}" {% if row.rating|int == score %}selected{% endif %}>{{ score }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="review-input">
+                    <span>重新点评</span>
+                    <input name="review" maxlength="200" value="{{ row.review or '' }}" placeholder="写下这次的口味感受">
+                </label>
+                <button type="submit">提交</button>
+            </form>
+        </article>
+        {% else %}
+        <div class="empty-state">暂无历史记录。</div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

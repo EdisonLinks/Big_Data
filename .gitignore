@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# IDE / local tooling
+.idea/
+.vscode/
+.ipynb_checkpoints/
+.virtual_documents/
+
+# Logs
+logs/
+logs/*.log
+*.log
+
+# Local notes and generated course helpers
+Untitled.ipynb
+build_ppt.py
+export_previews.py
+Claude_KIRO_GUIDE.md
+docs/superpowers/
+tests/test_kafka_connect.py
+tests/test_kafka_connect2.py
+
+# Large local datasets and generated artifacts
+*.csv
+*.json
+*.parquet
+*.db
+*.sqlite
+*.sqlite3
+
+# Course reports, slides, diagrams and generated previews
+*.doc
+*.docx
+*.ppt
+*.pptx
+*.vsdx
+*.pdf
+
+# OS files
+.DS_Store
+Thumbs.db

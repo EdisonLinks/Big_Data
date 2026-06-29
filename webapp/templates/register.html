@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}注册 - 菜品智能推荐系统{% endblock %}
+{% block content %}
+<section class="auth-wrap centered-auth">
+    <div class="panel auth-panel">
+        <div class="panel-kicker">New taste profile</div>
+        <h1>用户注册</h1>
+        <p>新账号会先看到热门高分菜品；产生历史行为后，首页会切换到个性化推荐。</p>
+        <form class="form-stack" method="post">
+            <label>用户名<input name="username" autocomplete="username" required></label>
+            <label>密码<input name="password" type="password" autocomplete="new-password" required></label>
+            <button type="submit">创建账号</button>
+            <a class="button ghost" href="{{ url_for('login') }}">已有账号登录</a>
+        </form>
+    </div>
+</section>
+{% endblock %}

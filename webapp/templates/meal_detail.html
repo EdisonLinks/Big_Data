@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}菜品详情 - 菜品智能推荐系统{% endblock %}
+{% block content %}
+<section class="hero-panel meal-hero">
+    <div>
+        <span class="eyebrow">Meal detail</span>
+        <h1>{{ meal.meal_name or meal.meal_id }}</h1>
+        <p>菜品 ID：{{ meal.meal_id }}</p>
+    </div>
+    <div class="meal-stats">
+        <div><span>平均分</span><strong>{{ "%.2f"|format(meal.avg_rating or 0) }}</strong></div>
+        <div><span>评分次数</span><strong>{{ meal.rating_count or 0 }}</strong></div>
+        <div><span>热度排名</span><strong>{{ meal.popularity_rank or "-" }}</strong></div>
+    </div>
+</section>
+
+{% if realtime_stats %}
+<section class="panel realtime-detail-panel">
+    <div class="section-title-row compact">
+        <div>
+            <h2>近 2 秒实时评分</h2>
+            <p>该数据由 Flink 从 Kafka 评论流窗口聚合后写入 MySQL，页面只负责读取展示。</p>
+        </div>
+        <span class="source-pill">Flink Window</span>
+    </div>
+    <div class="realtime-stats-grid">
+        <div><span>窗口平均分</span><strong>{{ "%.2f"|format(realtime_stats.avg_rating_2s or 0) }}</strong></div>
+        <div><span>窗口评论数</span><strong>{{ realtime_stats.review_count_2s or 0 }}</strong></div>
+        <div><span>实时热度</span><strong>{{ "%.2f"|format(realtime_stats.hot_score_2s or 0) }}</strong></div>
+        <div><span>窗口结束</span><strong>{{ realtime_stats.window_end or "-" }}</strong></div>
+    </div>
+</section>
+{% endif %}
+
+<section class="two-col">
+    <div class="panel">
+        <div class="section-title-row compact">
+            <h2>用户评论</h2>
+            <span class="source-pill">{{ meal.category or "未分类" }}</span>
+        </div>
+        <div class="review-list">
+            {% for row in reviews %}
+            <article class="review-card">
+                <div>
+                    <strong>{{ row.user_id }}</strong>
+                    <small>{{ row.review_date }}</small>
+                </div>
+                <span class="rating-chip">{{ row.rating }}</span>
+                <p>{{ row.review or "这位用户没有留下文字评论。" }}</p>
+            </article>
+            {% else %}
+            <div class="empty-state">暂无评论。</div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="panel">
+        <div class="section-title-row compact">
+            <h2>还可以看看</h2>
+            <span class="source-pill">ALS</span>
+        </div>
+        <div class="similar-list">
+            {% for row in similarities.als %}
+            <a class="similar-item" href="{{ url_for('meal_detail', meal_id=row.similar_meal_id) }}">
+                <span class="rank-chip">#{{ row.rank_no }}</span>
+                <strong>{{ row.similar_meal_id }}</strong>
+                <span class="score-line"><i style="width: {{ ((row.similarity or 0) * 100)|round(0) }}%"></i></span>
+                <small>{{ "%.4f"|format(row.similarity or 0) }}</small>
+            </a>
+            {% else %}
+            <div class="empty-state">暂无 ALS 相似菜品。</div>
+            {% endfor %}
+        </div>
+        <div class="section-title-row compact lower">
+            <h2>共同口味</h2>
+            <span class="source-pill">ItemCF</span>
+        </div>
+        <div class="similar-list compact-list">
+            {% for row in similarities.itemcf %}
+            <a class="mini-rec" href="{{ url_for('meal_detail', meal_id=row.similar_meal_id) }}">
+                <span>{{ row.rank_no }}</span>
+                <strong>{{ row.similar_meal_id }}</strong>
+                <small>{{ "%.4f"|format(row.similarity or 0) }} · {{ row.common_users }} 位共同用户</small>
+            </a>
+            {% else %}
+            <div class="empty-state">暂无 ItemCF 相似菜品。</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

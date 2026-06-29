@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}菜品智能推荐系统{% endblock %}</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand-block" href="{{ url_for('home') if session.get('user_id') else url_for('login') }}">
+                <span class="brand-mark" aria-hidden="true">M</span>
+                <span>
+                    <span class="brand">菜品智能推荐系统</span>
+                    <span class="subtle">Menu Intelligence</span>
+                </span>
+            </a>
+
+            <nav class="nav" aria-label="主导航">
+                {% if session.get("user_id") %}
+                <a href="{{ url_for('home') }}">用户首页</a>
+                <a href="{{ url_for('history') }}">历史记录</a>
+                <a href="{{ url_for('similar') }}">相似菜品</a>
+                <a href="{{ url_for('visualization') }}">数据图表</a>
+                <a href="{{ url_for('logout') }}">退出登录</a>
+                {% else %}
+                <a href="{{ url_for('login') }}">登录</a>
+                <a href="{{ url_for('register') }}">注册</a>
+                {% endif %}
+            </nav>
+
+            <div class="sidebar-foot">
+                <span>Kafka + Spark + MySQL</span>
+                <strong>实时评论链路</strong>
+            </div>
+        </aside>
+
+        <main id="main-content" class="page">
+            {% if session.get("user_id") %}
+            <form class="global-search" method="get" action="{{ url_for('search') }}" role="search">
+                <label for="global-search-input">搜索菜品</label>
+                <div class="global-search-box">
+                    <input id="global-search-input" name="q" value="{{ request.args.get('q', '') }}" placeholder="输入菜名或 meal_id">
+                    <button type="submit">搜索</button>
+                </div>
+            </form>
+            {% endif %}
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="flash" aria-live="polite">
+                {% for message in messages %}<div>{{ message }}</div>{% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>

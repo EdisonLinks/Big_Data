@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}登录 - 菜品智能推荐系统{% endblock %}
+{% block content %}
+<section class="login-shell">
+    <div class="login-copy">
+        <span class="eyebrow">Menu picks for today</span>
+        <h1>少一点纠结，多一点刚好想吃。</h1>
+        <p>登录后直接进入个人菜单：老用户看个性化推荐，新用户先从热门高分菜品开始。</p>
+        <div class="preview-board" aria-label="推荐预览">
+            <div class="preview-card hot">
+                <span>今日热度</span>
+                <strong>Top dishes</strong>
+                <small>用于新用户冷启动</small>
+            </div>
+            <div class="preview-card">
+                <span>个人口味</span>
+                <strong>For you</strong>
+                <small>基于历史评分生成</small>
+            </div>
+            <div class="preview-card fresh">
+                <span>相似发现</span>
+                <strong>Try next</strong>
+                <small>从相似菜品延展</small>
+            </div>
+        </div>
+    </div>
+    <div class="panel auth-panel">
+        <div class="panel-kicker">Welcome back</div>
+        <h2>用户登录</h2>
+        <div class="demo-accounts">
+            <span>demo_old / 123456</span>
+            <span>demo_new / 123456</span>
+        </div>
+        <form class="form-stack" method="post">
+            <label>用户名<input name="username" autocomplete="username" required></label>
+            <label>密码<input name="password" type="password" autocomplete="current-password" required></label>
+            <button type="submit">登录</button>
+            <a class="button ghost" href="{{ url_for('register') }}">注册新用户</a>
+        </form>
+    </div>
+</section>
+{% endblock %}
